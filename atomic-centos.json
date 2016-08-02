@@ -15,9 +15,8 @@
 
         "disk_size" : 10000,
 
-        "iso_url": "https://download.fedoraproject.org/pub/alt/atomic/stable/CloudImages/x86_64/images/Fedora-Atomic-Vagrant-24-20160721.0.x86_64.vagrant-virtualbox.box",
-        "iso_checksum": "401fa4ab7068424ffa1249d51ceae04f36593ffbecaa03a6cd00803ab048c307",
-        "iso_checksum_type": "sha256",
+        "iso_url": "http://cloud.centos.org/centos/7/atomic/images/CentOS-Atomic-Host-7-Installer.iso",
+        "iso_checksum_type": "none",
 
         "http_directory" : "http_directory",
         "http_port_min" : 9001,
