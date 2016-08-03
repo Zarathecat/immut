@@ -7,7 +7,7 @@
 
     "builders": [{
         "boot_command": [
-            "<tab> linux text biosdevname=0 ks=http://{{ .HTTPIP }}:{{ .HTTPPort}}/ks-fedora23.cfg<enter><enter>"
+            "<tab> linux text biosdevname=0 ks=http://{{ .HTTPIP }}:{{ .HTTPPort}}/ks-atomic-web.cfg<enter><enter>"
         ],
         "type": "virtualbox-iso",
         "guest_os_type": "Fedora_64",
