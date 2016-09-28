@@ -1,5 +1,8 @@
 #!/bin/sh
 
+set -e
+
+
 SCRIPT=$(readlink -f "$0")
 SCRIPTPATH=$(dirname "$SCRIPT")
 
@@ -7,38 +10,41 @@ projects="p1"
 services="git"
 
 # Stop and remove docker instances and networks
-docker stop $(docker ps -a -q)
-docker rm $(docker ps -a -q)
-docker network rm (docker network ls -q) || true
+docker stop $(docker ps -a -q) || true
+docker rm $(docker ps -a -q) || true
+docker network rm $(docker network ls -q) || true
 
 # Remove any autofs configuration
-rm /etc/auto.master.d/*
+rm /etc/auto.master.d/* || true
 
 # Create main subnetwork
 docker network create --subnet=172.101.0.0/16 immut-net
 
 # Create empty haproxy configuration file
-HAPROXYDIR="/var/lib/immut-haproxy/"
+HAPROXYDIR="/var/lib/immut-haproxy"
 HAPROXYCONF="$HAPROXYDIR/haproxy.cfg"
-mkdir -p "$HAPROXYCONF"
+mkdir -p "$HAPROXYDIR"
 cp "$SCRIPTPATH"/haproxy.cfg "$HAPROXYCONF"
 
 for i in $projects; do
     for j in $services; do
         # Create autofs configuration file
-        mkdir -p /var/data/$i/$j
-        echo "/var/lib/immut/$i/$j -rw,soft :/var/data/$i/$j" >> /etc/auto.master.d/auto.$i
+        mkdir -p /var/data/"$i"/"$j"
+        echo /var/lib/immut/"$i"/"$j" -rw,soft :/var/data/"$i"/"$j" >> /etc/auto.master.d/auto."$i"
 
         # Update haproxy configuration
-        echo "    acl host_$i_$j hdr(host) -m beg -i $j.$i" >> "$HAPROXYCONF"
-        echo "    use_backend $i_$j_http if host_$i_$j" >> "$HAPROXYCONF"
+        echo "    acl host_""$i""_""$j"" hdr(host) -m beg -i ""$j"".""$i" >> "$HAPROXYCONF"
+        echo "    use_backend ""$i""_""$j""_""http if host_""$i""_""$j" >> "$HAPROXYCONF"
         echo >> "$HAPROXYCONF"
     done
 done
 
 ip=3
 for i in $projects; do
+    echo $i i
     for j in $services; do
+        echo $j j
+        echo "$i"_"$j" i j
         # Launch container
         docker run -d -v=/dev/log:/dev/log --net immut-net \
                    --ip 172.101.0.$ip \
@@ -47,8 +53,8 @@ for i in $projects; do
                    $j # Service name has to match docker image name
 
         # Update haproxy with IP
-        echo "backend $i_$j_http" >> "$HAPROXYCONF"
-        echo "    server $i_$j 172.101.0.$ip:80" >> "$HAPROXYCONF"
+        echo "backend ""$i""_""$j""_http" >> "$HAPROXYCONF"
+        echo "    server ""$i""_""$j"" 172.101.0.""$ip"":80" >> "$HAPROXYCONF"
         echo >> "$HAPROXYCONF"
 
         ip=$(expr $ip + 1)
